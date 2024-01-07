@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Chat Atualizado</title>
+    <title>Video Chat</title>
 </head>
 <body>
-    <h1>Video Chat</h1>
+    <h1>Video Chat atualizado</h1>
     <div>
         <video id="localVideo" width="640" height="480" autoplay muted></video>
     </div>
@@ -21,11 +21,11 @@
 
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function(stream) {
+                .then(function (stream) {
                     localVideo.srcObject = stream;
-                    socket.emit('video_feed', { frame: stream });
+                    socket.emit('video_feed', stream);
 
-                    socket.on('video_feed', function(data) {
+                    socket.on('video_feed', function (data) {
                         // Recepção de um quadro de outro cliente
                         if (data.sid !== socket.id) {
                             var remoteVideo = document.getElementById('remoteVideo-' + data.sid);
@@ -46,7 +46,7 @@
                         }
                     });
                 })
-                .catch(function(err) {
+                .catch(function (err) {
                     console.log("Erro ao acessar a câmera: " + err);
                 });
         } else {
