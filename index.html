@@ -3,24 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Chat</title>
+    <title>Video Chat Atualizado</title>
 </head>
 <body>
     <h1>Video Chat</h1>
     <div>
-        <video id="localVideo" width="640" height="480" autoplay></video>
+        <video id="localVideo" width="640" height="480" autoplay muted></video>
     </div>
+
+    <div id="remoteVideos"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
     <script>
         var socket = io.connect('http://' + document.domain + ':' + location.port);
         var localVideo = document.getElementById('localVideo');
+        var remoteVideosContainer = document.getElementById('remoteVideos');
 
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(function(stream) {
                     localVideo.srcObject = stream;
-                    socket.emit('video_feed', stream);
+                    socket.emit('video_feed', { frame: stream });
+
+                    socket.on('video_feed', function(data) {
+                        // Recepção de um quadro de outro cliente
+                        if (data.sid !== socket.id) {
+                            var remoteVideo = document.getElementById('remoteVideo-' + data.sid);
+
+                            if (!remoteVideo) {
+                                // Cria um novo elemento de vídeo para o cliente remoto
+                                remoteVideo = document.createElement('video');
+                                remoteVideo.id = 'remoteVideo-' + data.sid;
+                                remoteVideo.width = 640;
+                                remoteVideo.height = 480;
+                                remoteVideo.autoplay = true;
+                                remoteVideo.srcObject = data.frame;
+                                remoteVideosContainer.appendChild(remoteVideo);
+                            } else {
+                                // Atualiza o stream do vídeo remoto
+                                remoteVideo.srcObject = data.frame;
+                            }
+                        }
+                    });
                 })
                 .catch(function(err) {
                     console.log("Erro ao acessar a câmera: " + err);
@@ -28,24 +52,6 @@
         } else {
             console.log("getUserMedia não suportado no navegador.");
         }
-
-        socket.on('video_feed', function(data) {
-            // Recepção de um quadro de outro cliente
-            if (data.sid !== socket.id) {
-                var remoteVideo = document.getElementById('remoteVideo-' + data.sid);
-
-                if (!remoteVideo) {
-                    // Cria um novo elemento de vídeo para o cliente remoto
-                    remoteVideo = document.createElement('video');
-                    remoteVideo.id = 'remoteVideo-' + data.sid;
-                    remoteVideo.width = 640;
-                    remoteVideo.height = 480;
-                    document.body.appendChild(remoteVideo);
-                }
-
-                remoteVideo.srcObject = data.frame;
-            }
-        });
     </script>
 </body>
 </html>
