@@ -3,21 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Pages com Comunicação ao Servidor</title>
+    <title>Video Chat</title>
 </head>
 <body>
-    <h1>GitHub Pages com Comunicação ao Servidor</h1>
+    <h1>Video Chat</h1>
+    <div>
+        <video id="localVideo" width="640" height="480" autoplay></video>
+    </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
     <script>
-        // Exemplo de solicitação AJAX usando JavaScript (substitua com as informações do seu servidor)
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", "http://[2a01:d0:ac2a:ffff:ffff:ffff:ffff:1107]:5000/index.html", true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                console.log(xhr.responseText);
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        var localVideo = document.getElementById('localVideo');
+
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    localVideo.srcObject = stream;
+                    socket.emit('video_feed', stream);
+                })
+                .catch(function(err) {
+                    console.log("Erro ao acessar a câmera: " + err);
+                });
+        } else {
+            console.log("getUserMedia não suportado no navegador.");
+        }
+
+        socket.on('video_feed', function(data) {
+            // Recepção de um quadro de outro cliente
+            if (data.sid !== socket.id) {
+                var remoteVideo = document.getElementById('remoteVideo-' + data.sid);
+
+                if (!remoteVideo) {
+                    // Cria um novo elemento de vídeo para o cliente remoto
+                    remoteVideo = document.createElement('video');
+                    remoteVideo.id = 'remoteVideo-' + data.sid;
+                    remoteVideo.width = 640;
+                    remoteVideo.height = 480;
+                    document.body.appendChild(remoteVideo);
+                }
+
+                remoteVideo.srcObject = data.frame;
             }
-        };
-        xhr.send();
+        });
     </script>
 </body>
 </html>
