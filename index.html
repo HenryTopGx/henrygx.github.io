@@ -11,7 +11,7 @@
     <script>
         // Exemplo de solicitação AJAX usando JavaScript (substitua com as informações do seu servidor)
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", "http://[2a01:d0:ac2a:ffff:ffff:ffff:ffff:1107]:5000", true);
+        xhr.open("GET", "http://[2a01:d0:ac2a:ffff:ffff:ffff:ffff:1107]:5000/index.html", true);
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4 && xhr.status == 200) {
                 console.log(xhr.responseText);
